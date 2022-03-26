@@ -11,10 +11,16 @@ async function main(){
   
 }
 async function fetchAllPastPost(){
+  
     //https://limelight.moe/user_actions.json?offset=21&username=winslow
   await $.post();
 }
 
-async function deletePost(){
-  await $.delete();
+function fetchPostPromise(){
+
+}
+
+async function deletePost(postID,csrf){
+  let requestData = {"_method":"delete"};
+  await $.post("https:/ /limelight.moe/posts/"+postID,requestData);
 }
