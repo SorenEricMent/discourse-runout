@@ -15,10 +15,19 @@ async function fetchPostIteration(currentOffset){
   
     //https://limelight.moe/user_actions.json?offset=21&username=winslow
   try{
+    removeRequestState = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     let requestData = await $.post(
     config.host + "/user_actions.json?offset="+currentOffset+"&username="+config.username
     ); //Maximum fetch per time: 30, out of offset = less
-    fetchPostIteration(currentOffset + 30);
+    let currentFetchedList = requestData.responseJSON;
+    for(var i=0;i<currentFetchedList.length;i++){
+    
+    }
+    if(currentFetchedList.length == 30){
+      fetchPostIteration(currentOffset + 30);
+    }else{
+      console.log("Task finished at offset" + currentOffset);
+    }
   }catch(){
     console.warn("Error encountered when fetching OFFSET" + currenOffset + ",skipping...");
   }
