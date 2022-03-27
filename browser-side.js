@@ -19,7 +19,7 @@ async function fetchPostIteration(currentOffset){
     config.host + "/user_actions.json?offset="+currentOffset+"&username="+config.username
     ); //Maximum fetch per time: 30, out of offset = less
     fetchPostIteration(currentOffset + 30);
-  }catch{
+  }catch(){
     console.warn("Error encountered when fetching OFFSET" + currenOffset + ",skipping...");
   }
 
@@ -29,7 +29,15 @@ async function postRemoveLoop(){
   
 }
 
-async function removePost(postID,csrf){
-  let requestData = {"_method":"delete"};
-  await $.post(config.host + "/posts/"+postID,requestData);
+function removePost(postID,csrf){
+  let requestData = {
+    "_method":"delete",
+    "headers": {
+      "x-csrf-token": CSRFToken
+    },
+    "creaditals": "include"
+  };
+  try{
+    $.post(config.host + "/posts/"+postID,requestData);
+  }catch(){}
 }
