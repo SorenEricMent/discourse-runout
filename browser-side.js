@@ -54,8 +54,11 @@ function removePost(requestIndex,postID,csrf,timeToLive){
     });
   }catch(requestIndex,postID,csrf,timeToLive){
     if(timeToLive <= retryThreshold){
-      console.error("Request x"+requestIndex+" to remove" + postID + "failed, TTL pass, retrying...");
+      console.warn("Request x"+requestIndex+" to remove" + postID + "failed, TTL pass, retrying...");
       removePost(requestIndex,postID,csrf,timeToLive+1)
+    }else{
+      console.error("Request x"+requestIndex+" to remove" + postID + " all retry failed!");
+      removeRequestState[requestIndex] = -1;
     }
   }
 }
