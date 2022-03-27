@@ -2,8 +2,10 @@
 main();
 
 async function main(){
+  retryThreshold = 2;
+  unwrappedUsername = $("#current-user")[0].childNodes[0].href.split("/")
   const config = {
-    "username": "winslow", //Change this to your username!
+    "username": unwrappedUsername[unwrappedUsername.length-1], //Change this to your username!
     "host": window.location.protocol + "//" + window.location.host
   }
   
@@ -38,7 +40,7 @@ async function postRemoveLoop(){
   
 }
 
-function removePost(postID,csrf){
+function removePost(requestIndex,postID,csrf,timeToLive){
   let requestData = {
     "_method":"delete",
     "headers": {
@@ -47,6 +49,13 @@ function removePost(postID,csrf){
     "creaditals": "include"
   };
   try{
-    $.post(config.host + "/posts/"+postID,requestData);
-  }catch(){}
+    $.post(config.host + "/posts/"+postID,requestData,function callback(requestIndex,timeToLive){
+      removeRequestState[requestIndex] = 1;
+    });
+  }catch(requestIndex,postID,csrf,timeToLive){
+    if(timeToLive <= retryThreshold){
+      console.error("Request x"+requestIndex+" to remove" + postID + "failed, TTL pass, retrying...");
+      removePost(requestIndex,postID,csrf,timeToLive+1)
+    }
+  }
 }
