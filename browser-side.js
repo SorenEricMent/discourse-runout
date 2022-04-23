@@ -8,34 +8,35 @@ async function main(){
     "username": wrappedUsername[wrappedUsername.length-1],
     "host": window.location.protocol + "//" + window.location.host
   }
-  
   var postIDList = [];
   var CSRFToken = document.getElementsByName("csrf-token")[0].content; //获取CSRF凭证
-  removePostIteration(0,CSRFToken,1);
-}
-async function removePostIteration(currentOffset,CSRFToken,TTL){
-    let requestData = await $.get(
-    config.host + "/user_actions.json?offset="+currentOffset+"&username="+config.username
+  
+  successCount = 0;
+  failedCount = 0;
+  iterationCount = 0;
+  currentOffset = -30;
+  requestLoop = setInterval(async function(){
+    iterationCount++;
+    currentOffset+=30;
+    var requestData = await $.get(
+      config.host + "/user_actions.json?&username="+config.username
     ); 
-    let currentFetchedList = requestData.user_actions;
-    loopCounter = 0;
-    successCount = 0;
-    failedCount = 0;
-    requestLoop = setInterval(async function(currentOffset,currentFetchedList,CSRFToken,TTL){
-      let isSuccess = true;
-      try{
-        await removePost(loopCounter,currentFetchedList[loopCounter].post_id,CSRFToken);
-      }catch{
-        isSuccess = false;
-      }
-      
-      if(isSuccess){
-        successCount++;
-      }else{
-        failedCount++;
-      }
-      
-      if(failedCount == (currentFetchedList.length){
+    var currentFetchedList = requestData.user_actions;
+    let timing = 0;
+    for(var i=0;i<currentFetchedList.length;i++){
+      let flag = true;
+      timing+=5000;
+try{
+      setTimeout(async function(){await removePost(currentFetchedList[i].post_id,CSRFToken)},timing);
+}catch{
+    if(flag){
+      successCount += 1;
+    }else{
+      failedCount += 1
+    }
+    }
+    }
+    if(failedCount == currentFetchedList.length){
           console.log("All remove operations failed in this Iteration, check if something happened. Script halted.");
           clearInterval(requestLoop);
       }else{
@@ -43,19 +44,21 @@ async function removePostIteration(currentOffset,CSRFToken,TTL){
         if((failedCount + successCount) == currentFetchedList.length){
          console.log("Iteration #"+TTL+" finished,"+successCount+" post removed," + failedCount + " failed.");
         }else if((failedCount + successCount) == 30){
-          console.log(("Task finished at offset" +currentOffset + ", iteration #"+ TTL + "," +successCount+" post removed," + failedCount + " failed.");
+          console.log("Task finished at offset" +currentOffset + ", iteration #"+ TTL + "," +successCount+" post removed," + failedCount + " failed.");
         }                       
-      }
-    },2000)
+     }
+    }
+  },5000)
 }
 
-async function removePost(requestIndex,postID,csrf){
+async function removePost(postID,csrf){
   let requestData = {
     "_method":"delete",
     "headers": {
-      "x-csrf-token": CSRFToken
+      "x-csrf-token": csrf
     },
     "credentials": "include"
   };
-  return await $.post(config.host + "/posts/"+postID,requestData);
+  resp = await $.post(config.host + "/posts/"+postID,requestData);
+  return resp;
 }
