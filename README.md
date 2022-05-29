@@ -2,11 +2,13 @@
 
 v0.1.2
 
+please don't use 0.1.1 since it contained a bug which might cause dead loop(if you removed your post while the script is working)
+
 ## For what?
 
-Remove all of your posts on a Discourse forum, without removing your precious account
+Remove all of your posts on a Discourse forum, without removing your precious account.
 
-Run!润喽!
+Run! 润喽!
 
 ## How to use?
 
@@ -46,4 +48,4 @@ To let the world know that I love **Lasagna**.
 
 Admit that **Lasagna** is delicious and wonderful.
 
-<small>...yet i can't do anything if you don't do so.</small>
+~~...yet i can't do anything if you don't do so.~~ otherwise i'll make you into a lasagna.

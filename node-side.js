@@ -97,7 +97,6 @@ function removePostInList() {
 
 async function removePost(postID) {
   let requestData = {
-
     "method": "DELETE",
     "mode": "cors",
     "headers": {
