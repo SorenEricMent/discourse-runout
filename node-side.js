@@ -1,10 +1,12 @@
 const https = require("https");
 const fs = require("fs");
+const { config } = require("process");
 
 config = {
   "cookie": {
     "_forum_session": "_forum_session=x",
-    "_t": "_t=x"
+    "_t": "_t=x",
+
   },
   "username": "Your user name",
   "csrf": 'someweirdcsrftokentobefilledherexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', //document.getElementsByName("csrf-token")[0].content
@@ -19,7 +21,7 @@ config = {
 
 postList = [];
 
-console.log('\x1b[33m%s\x1b[0m',"Discourse-runout v0.1.2 by Winslow SorenEricMent / I want to have some Lasagna."); //here i mean i really want to have some lasagna.
+console.log('\x1b[33m%s\x1b[0m',"Discourse-runout v0.2 by Winslow SorenEricMent / I want to have some Lasagna."); //here i mean i really want to have some lasagna.
 fetchPostData();
 
 function preciseSetInterval(callback, delay) {
@@ -145,9 +147,14 @@ async function removePost(postID) {
         break;
     }
     if (res.headers.hasOwnProperty("set-cookie")) {
-      let newCookie = res.headers["set-cookie"][0];
-      config.cookie._forum_session = newCookie;
-      console.log("new cookie settled: " + newCookie);
-    }
-  });
+      let cookies = res.headers["set-cookie"];
+      if(cookies.length > 1){
+        config.cookit._forum_session = cookies[0];
+        config.cookit._t = cookies[1];
+      }else{
+        config.cookit._forum_session = cookies[0];
+      }
+  }
+}
+);
 }

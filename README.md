@@ -1,8 +1,6 @@
 # Discourse-runout 
 
-v0.1.2
-
-please don't use 0.1.1 since it contained a bug which might cause dead loop(if you removed your post while the script is working)
+v0.2
 
 ## For what?
 
