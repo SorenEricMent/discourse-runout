@@ -148,10 +148,10 @@ async function removePost(postID) {
     if (res.headers.hasOwnProperty("set-cookie")) {
       let cookies = res.headers["set-cookie"];
       if(cookies.length > 1){
-        config.cookit._forum_session = cookies[1];
-        config.cookit._t = cookies[0];
+        config.cookie._forum_session = cookies[1];
+        config.cookie._t = cookies[0];
       }else{
-        config.cookit._forum_session = cookies[0];
+        config.cookie._forum_session = cookies[0];
       }
   }
 }
