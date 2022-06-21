@@ -1,27 +1,61 @@
 const https = require("https");
-const fs = require("fs");
+const sqlite3 = require('sqlite3');
+async function wrapper(){
+  const inquirer = (await import("inquirer")).default;
 
-config = {
-  "cookie": {
-    "_forum_session": "_forum_session=x",
-    "_t": "_t=x",
+  let db = new sqlite3.Database('./posts.sqlite');
 
-  },
-  "username": "Your user name",
-  "csrf": 'someweirdcsrftokentobefilledherexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', //document.getElementsByName("csrf-token")[0].content
-  "host": "https://some.sus.forum",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36 Discourse-runout/0.1.2",
-  "interval": {
-    "remove": 1800000,// 30 minutes by default. For some reference, 1 minute is 60000, 1 hours is 3600000, 3 hours is 10800000.
-    "fetch": 5000 //fetch post list, 5 second by default.
-  },
-  "reversed": true
-};
+  config = {
+    "cookie": {
+      "_forum_session": "_forum_session=x",
+      "_t": "_t=x",
+    },
+    "username": "Your user name",
+    "csrf": 'someweirdcsrftokentobefilledherexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', //document.getElementsByName("csrf-token")[0].content
+    "host": "https://some.sus.forum",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36 Discourse-runout/0.2.2",
+    "interval": {
+      "remove": 1800000,// 30 minutes by default. For some reference, 1 minute is 60000, 1 hours is 3600000, 3 hours is 10800000.
+      "fetch": 5000 //fetch post list, 5 second by default.
+    },
+    "reversed": true
+  };
 
-postList = [];
+  postList = [];
+  db.run("CREATE TABLE IF NOT EXISTS posts (id INTEGER);");
+  console.log('\x1b[33m%s\x1b[0m',"Discourse-runout v0.2.2 by Winslow SorenEricMent / I still want to have some Lasagna."); //here i mean i really want to have some lasagna.
+  db.all("SELECT id from posts", (errors,rows) =>{
+      console.log(rows);
+      if(rows.length == 0){
+          console.log('\x1b[33m%s\x1b[0m',"No posts found in database. Fetching posts...");
+          fetchPostData();
+      }else{
+        console.log('\x1b[33m%s\x1b[0m',"Posts found in local database. Use prefetched database?");
+        let question = {
+          "type": 'list',
+          "name": "Use prefetched",
+          "choices": [ "Yes, use lists fetched last time.", new inquirer.Separator(), "No, refetch posts." ]
+        };
+        inquirer.prompt(question).then(answer => {
+          if(answer["Use prefetched"] == "Yes, use lists fetched last time."){
+            console.log('\x1b[33m%s\x1b[0m',"Using prefetched database.");
+            for(const element in rows){
+              postList.push(rows[element].id);
+            }
+            removePostInList();
+          }else{
+            console.log('\x1b[33m%s\x1b[0m',"Refetching posts...");
+            fetchPostData();
+          }
+      });
+    }
+    //on error
+    db.on('error', (err) => {
+      console.log('\x1b[33m%s\x1b[0m',"Error: " + err);
+    });
+  });
+}
 
-console.log('\x1b[33m%s\x1b[0m',"Discourse-runout v0.2 by Winslow SorenEricMent / I want to have some Lasagna."); //here i mean i really want to have some lasagna.
-fetchPostData();
 
 function preciseSetInterval(callback, delay) {
   var timer = 0;
@@ -70,6 +104,7 @@ function fetchPostData() {
           for (const element of data) {
             if (!element.deleted) {
               postList.push(element.post_id);
+              db.run("INSERT into posts (id) VALUES (" + element.post_id + ")");
               console.log('\x1b[32m%s\x1b[0m',"Post ID: " + element.post_id + " added to list.");
             }
           }
@@ -123,9 +158,11 @@ async function removePost(postID) {
     switch (res.statusCode) {
       case 200:
         console.log('\x1b[32m%s\x1b[0m',"Post ID: " + postID + " removed.");
+        db.run("DELETE FROM posts WHERE id=" + postID + ";");
         break;
       case 404:
         console.log('\x1b[32m%s\x1b[0m',"Post ID: " + postID + " not found.");
+        db.run("DELETE FROM posts WHERE id=" + postID + ";");
         break;
       case 429:
         console.log('\x1b[31m%s\x1b[0m',"Discourse response with Too many requests(429), stop the whole script and wait for 5 minutes.");
@@ -134,6 +171,7 @@ async function removePost(postID) {
           removePostInList();
         }, 300000);
         postList.push(postID);
+        db.run("INSERT into posts (id) VALUES (" + postID + ")");
         break;
       case 403:
         console.log('\x1b[31m%s\x1b[0m',"Fatal Error: Cookie expired.");
@@ -143,6 +181,7 @@ async function removePost(postID) {
       default:
         console.log('\x1b[31m%s\x1b[0m',"Post ID: " + postID + " removed with error.");
         console.log('\x1b[31m%s\x1b[0m',"Unexpected StatusCode: " + res.statusCode);
+        db.run("DELETE FROM posts WHERE id=" + postID + ";");
         break;
     }
     if (res.headers.hasOwnProperty("set-cookie")) {
@@ -157,3 +196,4 @@ async function removePost(postID) {
 }
 );
 }
+wrapper();

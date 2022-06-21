@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "needle": "^3.1.0"
+    "inquirer": "^9.0.0",
+    "needle": "^3.1.0",
+    "sqlite3": "^5.0.8"
   }
 }
